@@ -3,7 +3,7 @@
  * Dynamic BASE_URL prefix ensures 100% asset path reliability on GitHub Pages & Localhost.
  */
 
-const BASE = (import.meta as any).env?.BASE_URL || '/jhodsy-skincare/';
+const BASE = (import.meta as any).env?.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
 
 export const JHODSY_ASSETS = {

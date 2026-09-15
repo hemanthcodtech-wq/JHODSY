@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { LayoutDashboard, ShoppingBag, Package, BarChart3, LogOut, Shield, Users, Menu, X, ImageIcon, Tag, Truck, Settings, Store, MessageSquare, PalmtreeIcon } from "lucide-react";
 
-const JHODSY_LOGO = '/jhodsy-skincare/assets/jhodsy-logo-symbol.png';
+const JHODSY_LOGO = '/assets/jhodsy-logo-symbol.png';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
