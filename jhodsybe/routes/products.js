@@ -5,6 +5,14 @@ const sql = require('../db');
 // Get all active products — JOINs offers so frontend gets effective_price
 router.get('/', async (req, res) => {
   try {
+    const redisClient = require('../redis');
+    
+    // Check Redis cache first
+    const cachedProducts = await redisClient.get('all_products');
+    if (cachedProducts) {
+      return res.json({ products: JSON.parse(cachedProducts) });
+    }
+
     const products = await sql`
       SELECT 
         p.*,
@@ -20,6 +28,10 @@ router.get('/', async (req, res) => {
       WHERE p.is_active = true 
       ORDER BY p.created_at DESC
     `;
+    
+    // Cache the result in Redis for 10 minutes (600 seconds)
+    await redisClient.setEx('all_products', 600, JSON.stringify(products));
+
     res.json({ products });
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -31,6 +43,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const redisClient = require('../redis');
+    const cacheKey = `product_${id}`;
+
+    // Check Redis cache first
+    const cachedProduct = await redisClient.get(cacheKey);
+    if (cachedProduct) {
+      return res.json({ product: JSON.parse(cachedProduct) });
+    }
+
     let products;
 
     const query = sql`
@@ -83,6 +104,9 @@ router.get('/:id', async (req, res) => {
     if (products.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
+
+    // Cache the result in Redis for 10 minutes
+    await redisClient.setEx(cacheKey, 600, JSON.stringify(products[0]));
 
     res.json({ product: products[0] });
   } catch (error) {

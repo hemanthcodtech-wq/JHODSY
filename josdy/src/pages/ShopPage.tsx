@@ -5,11 +5,12 @@ import { JHODSY_ASSETS } from '../data/assets';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { RatingStars } from '../components/common/RatingStars';
+import { useProductsStore } from '../store/useProductsStore';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const ShopPage: React.FC = () => {
-  const [products, setProducts] = useState<any[]>([]);
+  const { products, loading: productsLoading, fetchProducts } = useProductsStore();
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceMax, setPriceMax] = useState(1000);
@@ -21,16 +22,8 @@ export const ShopPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/products`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.products) {
-          setProducts(d.products);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    fetchProducts().finally(() => setLoading(false));
+  }, [fetchProducts]);
 
   const categories = ['All', 'Serums', 'Moisturizers', 'Face Wash', 'Toners', 'Kits'];
 

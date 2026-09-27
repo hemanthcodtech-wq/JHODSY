@@ -6,11 +6,17 @@ import { useAuthStore } from '../store/useAuthStore';
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, fetchProfile, logout } = useAuthStore();
+  const { user, token, fetchProfile, logout } = useAuthStore();
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
+    if (token) {
+      fetchProfile();
+    } else {
+      navigate('/login');
+    }
+  }, [fetchProfile, token, navigate]);
+
+  if (!token) return null;
 
   const handleLogout = () => {
     logout();

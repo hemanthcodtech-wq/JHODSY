@@ -4,13 +4,13 @@ const sql = require('./db');
 async function fix() {
   try {
     const images = [
-      '/jhodsy-skincare/assets/jhodsy-hero-splash.png', 
-      '/jhodsy-skincare/assets/jhodsy-serum-box.png', 
-      '/jhodsy-skincare/assets/jhodsy-serum-front.png', 
-      '/jhodsy-skincare/assets/jhodsy-serum-clean.png', 
-      '/jhodsy-skincare/assets/jhodsy-serum-water.png', 
-      '/jhodsy-skincare/assets/jhodsy-serum-packaging.png', 
-      '/jhodsy-skincare/assets/jhodsy-serum-splash.png'  
+      '/assets/jhodsy-hero-splash.png', 
+      '/assets/jhodsy-serum-box.png', 
+      '/assets/jhodsy-serum-front.png', 
+      '/assets/jhodsy-serum-clean.png', 
+      '/assets/jhodsy-serum-water.png', 
+      '/assets/jhodsy-serum-packaging.png', 
+      '/assets/jhodsy-serum-splash.png'  
     ];
     const variants = [
       {

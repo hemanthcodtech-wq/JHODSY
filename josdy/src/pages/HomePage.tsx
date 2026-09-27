@@ -5,27 +5,22 @@ import { JHODSY_ASSETS } from '../data/assets';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { RatingStars } from '../components/common/RatingStars';
+import { useProductsStore } from '../store/useProductsStore';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const HomePage: React.FC = () => {
-  const [featuredProduct, setFeaturedProduct] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
+  const { products, loading: productsLoading, fetchProducts } = useProductsStore();
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
 
+  const featuredProduct = products.length > 0 ? products[0] : null;
+
   useEffect(() => {
-    fetch(`${BACKEND_URL}/products`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.products && d.products.length > 0) {
-          setFeaturedProduct(d.products[0]);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    fetchProducts().finally(() => setLoading(false));
 
     fetch(`${BACKEND_URL}/reviews`)
       .then(r => r.json())
