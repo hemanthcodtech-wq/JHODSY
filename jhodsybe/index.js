@@ -10,7 +10,9 @@ const port = process.env.PORT || 3000;
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  'https://jhodsyfront.vercel.app'
+  'https://jhodsyfront.vercel.app',
+  'https://www.jhodsy.com',
+  'https://jhodsy.com'
 ];
 
 app.use(cors({
