@@ -86,14 +86,16 @@ router.post('/send-signup-otp', async (req, res) => {
       `,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) console.error('Error sending OTP:', error);
-    });
-
-    res.status(200).json({ message: 'OTP sent successfully' });
+    try {
+      await transporter.sendMail(mailOptions);
+      res.status(200).json({ message: 'OTP sent successfully' });
+    } catch (emailError) {
+      console.error('Error sending OTP email:', emailError);
+      res.status(500).json({ error: 'Failed to send OTP email. Please check your SMTP configuration.' });
+    }
   } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ error: 'Failed to send OTP' });
+    console.error('Database/Server Error:', error);
+    res.status(500).json({ error: 'Failed to process OTP request' });
   }
 });
 
