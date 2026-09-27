@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { PhoneCall, MessageCircle, Mail, MapPin, ShieldCheck, RotateCcw, Truck, Award } from 'lucide-react';
+import { PhoneCall, MessageCircle, Mail, MapPin, ShieldCheck, RotateCcw, Truck, Award, Instagram } from 'lucide-react';
 import { BRAND_INFO } from '../../data/product';
 import { JHODSY_ASSETS } from '../../data/assets';
 
@@ -137,6 +137,16 @@ export const Footer: React.FC = () => {
               >
                 <MessageCircle className="w-4 h-4 fill-current" />
                 <span>WhatsApp: {BRAND_INFO.whatsapp}</span>
+              </a>
+
+              <a
+                href={(BRAND_INFO as any).instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-[#E1306C] font-semibold hover:underline"
+              >
+                <Instagram className="w-4 h-4" />
+                <span>Follow on Instagram</span>
               </a>
 
               <a href={`mailto:${BRAND_INFO.email}`} className="flex items-center space-x-2 hover:text-white transition">

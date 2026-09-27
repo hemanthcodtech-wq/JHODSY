@@ -11,6 +11,7 @@ export const BRAND_INFO = {
   customerCare: '18008907404',
   whatsapp: '8074193553',
   whatsappUrl: 'https://wa.me/918074193553?text=Hi%20JHODSY%2C%20I%20would%20like%20to%20know%20more%20about%20your%20Brightening%20Serum',
+  instagramUrl: 'https://instagram.com/jhodsy',
   email: 'jhodsyskin@gmail.com',
   timings: 'Mon - Sat, 9AM - 6PM',
   address: {
