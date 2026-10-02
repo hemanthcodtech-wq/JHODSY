@@ -403,9 +403,14 @@ router.get('/orders', async (req, res) => {
         zip: o.zip
       };
       
-      const items = await sql`SELECT * FROM order_items WHERE order_id = ${o.id}`;
+      const items = await sql`
+        SELECT oi.*, p.images 
+        FROM order_items oi 
+        LEFT JOIN products p ON p.id::text = oi.product_id
+        WHERE oi.order_id = ${o.id}
+      `;
       o.items = items.map(i => ({
-        product: { id: i.product_id, name: i.product_name, price: i.price },
+        product: { id: i.product_id, name: i.product_name, price: i.price, images: i.images },
         variant: { size: i.size, price: i.price },
         qty: i.quantity
       }));

@@ -223,6 +223,80 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Google OAuth Login / Signup
+router.post('/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    if (!idToken) return res.status(400).json({ error: 'Token is required' });
+
+    // Fetch user info from Google using the access token
+    const fetchResponse = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo`, {
+      headers: { Authorization: `Bearer ${idToken}` }
+    });
+    
+    if (!fetchResponse.ok) {
+      return res.status(400).json({ error: 'Invalid Google token' });
+    }
+
+    const userInfo = await fetchResponse.json();
+    const { email, name, email_verified } = userInfo;
+
+    if (!email_verified) {
+      return res.status(400).json({ error: 'Google email is not verified' });
+    }
+
+    // Check if user exists
+    let userResult = await sql`SELECT * FROM users WHERE email = ${email}`;
+    let user;
+
+    if (userResult.length === 0) {
+      // Create new user for google signup
+      const randomPassword = crypto.randomBytes(16).toString('hex');
+      const passwordHash = await bcrypt.hash(randomPassword, 10);
+      userResult = await sql`
+        INSERT INTO users (email, password_hash, role, is_verified) 
+        VALUES (${email}, ${passwordHash}, 'customer', true) 
+        RETURNING *
+      `;
+      user = userResult[0];
+
+      // Insert default address as name placeholder
+      await sql`
+        INSERT INTO addresses (user_id, name, line1, city, state, pincode, mobile, is_default)
+        VALUES (${user.id}, ${name || 'User'}, '', '', '', '', '', true)
+      `;
+    } else {
+      user = userResult[0];
+      // Auto-verify if they used Google
+      if (!user.is_verified) {
+        await sql`UPDATE users SET is_verified = true WHERE id = ${user.id}`;
+        user.is_verified = true;
+      }
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      message: 'Logged in successfully',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        is_verified: user.is_verified,
+        name: name || user.email.split('@')[0]
+      }
+    });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ error: 'Google login failed' });
+  }
+});
+
 // Get User Profile
 router.get('/profile', async (req, res) => {
   try {
