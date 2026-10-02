@@ -190,7 +190,7 @@ export const ContactPage: React.FC = () => {
       </div>
 
       {/* Registered Business Address & Tax Details */}
-      <div className="bg-[#071426] border border-white/10 rounded-3xl p-8 space-y-4 shadow-card-dark">
+      {/* <div className="bg-[#071426] border border-white/10 rounded-3xl p-8 space-y-4 shadow-card-dark">
         <div className="flex items-center space-x-3 text-white">
           <MapPin className="w-5 h-5 text-white" />
           <h3 className="text-lg font-bold">Registered Business Address</h3>
@@ -206,7 +206,7 @@ export const ContactPage: React.FC = () => {
           <span>Category: <strong className="text-white">Skincare Retail</strong></span>
           <span>Target Customers: <strong className="text-white">Men & Women</strong></span>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -6,12 +6,12 @@ import logoUrl from '../../assets/logo.png';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 const FROM_ADDRESS = {
-  name: "UP Traders",
-  line1: "1-1-738, Vinayaka temple road",
-  city: "Koratla",
-  state: "Telangana",
-  pincode: "",
-  phone: "+91 90326 75205",
+  name: "JHODSY",
+  line1: "1-328, Kothapeta",
+  city: "Anakapalli",
+  state: "Andhra Pradesh",
+  pincode: "531061",
+  phone: "+91 80741 93553",
 };
 
 const SHIPPING_STATUSES = ["pending", "paid", "processing", "shipped", "delivered", "cancelled"];
@@ -878,9 +878,10 @@ const updateStatus = async (orderId, status) => {
       : '—';
 
     const renderRow = (item, idx, isCancelled = false) => {
+      const parseArr = (v) => { try { return typeof v === 'string' ? JSON.parse(v) : (v || []); } catch { return []; } };
       const variantColor = (item.variant?.color || '').toLowerCase().trim();
       const matchedVariant = item.product?.variants?.find(v => (v.color || '').toLowerCase().trim() === variantColor);
-      const img = item.variant?.image || matchedVariant?.images?.[0] || item.product?.images?.[0] || item.product?.image_url || item.image_url || '';
+      const img = item.variant?.image || parseArr(matchedVariant?.images)[0] || parseArr(item.product?.images)[0] || item.product?.image_url || item.image_url || '';
       const absImg = img && img.startsWith('http') ? img : (img ? `${window.location.origin}${img.startsWith('/') ? '' : '/'}${img}` : '');
       const code = item.variant?.sku || item.variant?.code || matchedVariant?.code || item.product?.product_code || item.product_code || item.sku || '';
       return `
@@ -900,8 +901,8 @@ const updateStatus = async (orderId, status) => {
         </td>
         <td style="padding:10px 12px;border-bottom:1px solid #F6EFEF;vertical-align:middle;text-align:center;font-size:9pt;">${escapeHtml(item.variant?.size || item.size || '—')}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #F6EFEF;vertical-align:middle;text-align:center;font-size:9pt;">${item.qty}</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #F6EFEF;vertical-align:middle;text-align:right;font-size:9pt;font-weight:600; ${isCancelled ? 'text-decoration: line-through;' : ''}">₹${(item.variant?.price || item.product?.price || item.price || 0).toFixed(2)}</td>
-        <td style="padding:10px 12px;border-bottom:1px solid #F6EFEF;vertical-align:middle;text-align:right;font-size:9pt;font-weight:700;color:#08183A; ${isCancelled ? 'text-decoration: line-through;' : ''}">₹${((item.variant?.price || item.product?.price || item.price || 0) * item.qty).toFixed(2)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #F6EFEF;vertical-align:middle;text-align:right;font-size:9pt;font-weight:600; ${isCancelled ? 'text-decoration: line-through;' : ''}">₹${(Number(item.variant?.price || item.product?.price || item.price) || 0).toFixed(2)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #F6EFEF;vertical-align:middle;text-align:right;font-size:9pt;font-weight:700;color:#08183A; ${isCancelled ? 'text-decoration: line-through;' : ''}">₹${((Number(item.variant?.price || item.product?.price || item.price) || 0) * item.qty).toFixed(2)}</td>
       </tr>`;
     };
 
@@ -930,7 +931,10 @@ const updateStatus = async (orderId, status) => {
 <table style="width:100%;border-collapse:collapse;border-bottom:3px solid #08183A;padding-bottom:16px;margin-bottom:20px;">
   <tr>
     <td style="vertical-align:middle;width:50%;">
-      <img src="${new URL(logoUrl, window.location.href).href}" style="height:64px;width:auto;object-fit:contain;" alt="UP Traders" />
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="${new URL(logoUrl, window.location.href).href}" style="height:64px;width:auto;object-fit:contain;" alt="JHODSY" />
+        <span style="font-size:24pt;font-weight:900;color:#08183A;letter-spacing:2px;font-family:sans-serif;">JHODSY</span>
+      </div>
     </td>
     <td style="vertical-align:top;text-align:right;">
       <div style="font-size:20pt;font-weight:900;color:#08183A;letter-spacing:-0.5px;">INVOICE</div>
@@ -950,10 +954,10 @@ const updateStatus = async (orderId, status) => {
     <td style="width:${isPickup ? '100%' : '50%'};vertical-align:top;padding:12px;border:1px solid #e8d5b0;background:#FFFDFD;border-radius:4px;">
       <div style="font-size:9pt;font-weight:700;color:#08183A;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8d5b0;padding-bottom:5px;margin-bottom:8px;">From</div>
       <div style="font-size:9.5pt;color:#555;line-height:1.6;">
-        <strong style="color:#08183A;">UP Traders (U Praveen kumar)</strong><br>
-        10-34 Malkapur X road, Sangareddy-502001<br>
-        Phone/WhatsApp: +91 88860 00847<br>
-        GSTIN: 36DABPP4028M1ZG
+        <strong style="color:#08183A;">JHODSY</strong><br>
+        1-328, Kothapeta, VSMD 011, Rambilli, Anakapalli<br>
+        Andhra Pradesh - 531061<br>
+        Phone/WhatsApp: +91 80741 93553<br>
       </div>
     </td>
     ${!isPickup ? `
@@ -1002,7 +1006,7 @@ const updateStatus = async (orderId, status) => {
 </table>
 
 <div style="margin-top:30px;padding-top:12px;border-top:1px solid #e8d5b0;text-align:center;font-size:8.5pt;color:#999;">
-  Thank you for shopping with UP Traders! &nbsp;|&nbsp;  &nbsp;|&nbsp; +91 88860 00847
+  Thank you for shopping with JHODSY! &nbsp;|&nbsp; +91 80741 93553
 </div>
 
 <div class="print-btn">
@@ -1035,7 +1039,7 @@ const updateStatus = async (orderId, status) => {
       `Hi ${order.user_name || address.name || 'Customer'}! 🙏 Please find your *Invoice* for Order *#${order.order_number || order.id}* below:\n\n` +
       `*Items:*\n${itemsText}\n\n` +
       `*Total: ₹${order.total}*\n\n` +
-      `Thank you for shopping with UP Traders!`
+      `Thank you for shopping with JHODSY!`
     );
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
   };
@@ -1081,7 +1085,7 @@ const updateStatus = async (orderId, status) => {
 <body>
 <div class="box">
   <div class="hdr">
-    <div class="brand">UP Traders</div>
+    <div class="brand">JHODSY</div>
     <div class="oid">#${order.order_number || order.id}</div>
   </div>
   <div class="sec">
@@ -1346,9 +1350,10 @@ const updateStatus = async (orderId, status) => {
                             <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200 inline-block mb-2">Cancelled Items</span>
                             <div className="space-y-3">
                               {cancelledList.map((item, idx) => {
+                                const parseArr = (v) => { try { return typeof v === 'string' ? JSON.parse(v) : (v || []); } catch { return []; } };
                                 const variantColor = (item.variant?.color || '').toLowerCase().trim();
                                 const matchedVariant = item.product?.variants?.find(v => (v.color || '').toLowerCase().trim() === variantColor);
-                                const variantImg = item.variant?.image || matchedVariant?.images?.[0] || item.product?.images?.[0] || item.product?.image_url;
+                                const variantImg = item.variant?.image || parseArr(matchedVariant?.images)[0] || parseArr(item.product?.images)[0] || item.product?.image_url;
                                 const itemCode = item.variant?.size_code || item.variant?.code || matchedVariant?.sizes?.find(s => s.size === item.variant?.size)?.code || matchedVariant?.code;
                                 return (
                                   <div key={`cancel-${idx}`} className="flex gap-3 items-center opacity-60 grayscale">
@@ -1387,9 +1392,10 @@ const updateStatus = async (orderId, status) => {
                             )}
                             <div className="space-y-3">
                               {activeItems.map((item, idx) => {
+                                const parseArr = (v) => { try { return typeof v === 'string' ? JSON.parse(v) : (v || []); } catch { return []; } };
                                 const variantColor = (item.variant?.color || '').toLowerCase().trim();
                                 const matchedVariant = item.product?.variants?.find(v => (v.color || '').toLowerCase().trim() === variantColor);
-                                const variantImg = item.variant?.image || matchedVariant?.images?.[0] || item.product?.images?.[0] || item.product?.image_url;
+                                const variantImg = item.variant?.image || parseArr(matchedVariant?.images)[0] || parseArr(item.product?.images)[0] || item.product?.image_url;
                                 const itemCode = item.variant?.size_code || item.variant?.code || matchedVariant?.sizes?.find(s => s.size === item.variant?.size)?.code || matchedVariant?.code;
                                 return (
                                 <div key={idx} className="flex gap-3 items-center">

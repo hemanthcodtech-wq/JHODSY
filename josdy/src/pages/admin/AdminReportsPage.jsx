@@ -20,8 +20,66 @@ export function AdminReportsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const downloadReport = (type) => {
-    alert(`Downloading ${type} report... (Feature coming soon)`);
+  const downloadReport = async (type) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      let endpoint = '';
+      let filename = `${type}_report.csv`;
+      switch (type) {
+        case 'revenue': case 'orders': endpoint = '/admin/orders'; break;
+        case 'products': endpoint = '/admin/products'; break;
+        case 'customers': endpoint = '/admin/users'; break;
+        case 'coupons': endpoint = '/admin/coupons'; break;
+        default: return;
+      }
+      const res = await fetch(`${BACKEND_URL}${endpoint}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      let csvContent = "";
+      let headers = [];
+      let rows = [];
+      if (type === 'revenue' || type === 'orders') {
+        const orders = data.orders || [];
+        headers = ["Order ID", "Date", "Customer Name", "Customer Phone", "Status", "Total Amount", "Payment ID"];
+        rows = orders.map(o => [
+          o.order_number || o.id,
+          new Date(o.created_at).toLocaleString(),
+          o.address?.name || o.user_name || 'Guest',
+          o.address?.mobile || o.address?.phone || '',
+          o.status,
+          o.total,
+          o.razorpay_payment_id || ''
+        ]);
+      } else if (type === 'products') {
+        const products = data.products || [];
+        headers = ["Product ID", "Name", "Price", "MRP", "Stock", "Category ID"];
+        rows = products.map(p => [p.id, p.name, p.price, p.mrp, p.stock || 0, p.category_id || '']);
+      } else if (type === 'customers') {
+        const users = data.users || [];
+        headers = ["User ID", "Email", "Name", "Phone", "Role", "Joined Date"];
+        rows = users.map(u => [u.id, u.email, u.name || '', u.phone || '', u.role, new Date(u.created_at).toLocaleString()]);
+      } else if (type === 'coupons') {
+        const coupons = data.coupons || [];
+        headers = ["Coupon ID", "Code", "Discount %", "Usage Type", "Active"];
+        rows = coupons.map(c => [c.id, c.code, c.discount_percentage, c.usage_type || '', c.is_active ? 'Yes' : 'No']);
+      }
+      csvContent += headers.join(",") + "\n";
+      rows.forEach(rowArray => {
+        const row = rowArray.map(item => `"${String(item || '').replace(/"/g, '""')}"`).join(",");
+        csvContent += row + "\n";
+      });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading report", error);
+      alert("Failed to download report.");
+    }
   };
 
   if (loading) return (
@@ -48,7 +106,7 @@ export function AdminReportsPage() {
               <p className="text-xl font-serif font-bold text-white">${stats?.totalRevenue || 0}</p>
             </div>
           </div>
-          <button onClick={() => downloadReport('revenue')} className="w-full mt-2 flex items-center justify-center gap-2 bg-white/[0.02] text-white py-2 rounded-xl text-sm font-semibold hover:bg-brand-green text-white/10 transition-colors">
+          <button onClick={() => downloadReport('revenue')} className="w-full mt-2 flex items-center justify-center gap-2 bg-[#D4AF37] text-[#08183A] py-2.5 rounded-xl text-sm font-bold hover:bg-[#F0E0C0] transition-colors shadow-lg">
             <Download className="w-4 h-4" /> Download Sales Report
           </button>
         </div>
@@ -63,7 +121,7 @@ export function AdminReportsPage() {
               <p className="text-xl font-serif font-bold text-white">{stats?.totalOrders || 0}</p>
             </div>
           </div>
-          <button onClick={() => downloadReport('orders')} className="w-full mt-2 flex items-center justify-center gap-2 bg-white/[0.02] text-white py-2 rounded-xl text-sm font-semibold hover:bg-brand-green text-white/10 transition-colors">
+          <button onClick={() => downloadReport('orders')} className="w-full mt-2 flex items-center justify-center gap-2 bg-[#D4AF37] text-[#08183A] py-2.5 rounded-xl text-sm font-bold hover:bg-[#F0E0C0] transition-colors shadow-lg">
             <Download className="w-4 h-4" /> Download Orders Report
           </button>
         </div>
@@ -82,7 +140,7 @@ export function AdminReportsPage() {
                 <p className="font-sans font-bold text-white">{report.title}</p>
                 <p className="text-xs text-white/50">{report.desc}</p>
               </div>
-              <button onClick={() => downloadReport(report.type)} className="flex items-center justify-center gap-2 bg-[#0B192D] border border-white/10 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-brand-green text-white hover:text-white transition-colors">
+              <button onClick={() => downloadReport(report.type)} className="flex items-center justify-center gap-2 bg-[#D4AF37] text-[#08183A] px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#F0E0C0] transition-colors shadow-md">
                 <Download className="w-4 h-4" /> Export CSV
               </button>
             </div>

@@ -6,24 +6,29 @@ import { JHODSY_ASSETS } from '../data/assets';
 export const SciencePage: React.FC = () => {
   const actives = [
     {
-      name: 'Multi-Molecular Hyaluronic Acid',
-      role: 'Deep Cellular Hydration',
-      desc: 'High, medium, and low molecular weights penetrate distinct dermal layers to instantly plump fine lines and seal long-lasting moisture.'
+      name: 'Hyaluronic Acid',
+      role: 'Deep Hydration',
+      desc: 'Attracts and retains moisture to instantly plump fine lines and seal long-lasting hydration.'
     },
     {
-      name: 'Stabilized Vitamin C Complex',
-      role: 'Antioxidant Defense & Glow',
-      desc: 'Shields cells from oxidative UV and pollution stress while visibly brightening dullness and boosting natural collagen synthesis.'
-    },
-    {
-      name: 'Alpha Arbutin & Niacinamide (B3)',
+      name: 'Tranexamic Acid',
       role: 'Pigmentation Corrector',
-      desc: 'Clinically targeted tyrosinase inhibitors that fade persistent dark spots, melasma, and post-acne redness for an even-toned complexion.'
+      desc: 'Effectively targets discoloration, melasma, and hyperpigmentation for a visibly brighter, even-toned complexion.'
     },
     {
-      name: 'Botanical Hydrosols & Ceramides',
-      role: 'Skin Barrier Restoration',
-      desc: 'Soothes inflammation, locks in hydration, and restores the skin’s natural acid mantle at balanced pH 5.5.'
+      name: 'Niacinamide',
+      role: 'Skin Barrier & Brightening',
+      desc: 'Strengthens the skin barrier, reduces redness, and minimizes the appearance of pores while boosting overall radiance.'
+    },
+    {
+      name: 'Sepiwhite (Undecylenoyl Phenylalanine)',
+      role: 'Advanced Brightening',
+      desc: 'An innovative molecule that gently regulates melanin production to fade persistent dark spots and illuminate the skin.'
+    },
+    {
+      name: 'Lactic Acid',
+      role: 'Gentle Exfoliation',
+      desc: 'A gentle alpha hydroxy acid (AHA) that softly exfoliates dead skin cells, promoting a smoother texture and renewed glow.'
     }
   ];
 

@@ -66,7 +66,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="pt-2">
               <span className="text-[10px] uppercase font-bold tracking-widest text-[#8994A3]">
-                GSTIN: {BRAND_INFO.gst}
+                {/* GSTIN: {BRAND_INFO.gst} */}
               </span>
             </div>
           </div>

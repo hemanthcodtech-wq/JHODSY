@@ -53,9 +53,9 @@ export const Navbar: React.FC = () => {
             <img
               src={JHODSY_ASSETS.logoSymbol}
               alt="JHODSY"
-              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition group-hover:scale-105"
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition group-hover:scale-105 brightness-[0.8]"
             />
-            <span className="text-lg sm:text-xl font-bold tracking-[0.2em] text-white font-sans uppercase">
+            <span className="text-lg sm:text-xl font-bold tracking-[0.2em] text-[#C0C0C0] font-sans uppercase">
               JHODSY
             </span>
           </Link>

@@ -106,9 +106,13 @@ export const CheckoutAddressPage: React.FC = () => {
           pincode: data.address.zip,
           landmark: ''
         });
+        navigate('/checkout/payment');
+      } else {
+        alert(data.error || 'Failed to save address');
       }
     } catch (e) {
       console.error(e);
+      alert('Network error while saving address');
     } finally {
       setSaving(false);
     }
