@@ -197,9 +197,8 @@ export const ContactPage: React.FC = () => {
         </div>
         <p className="text-sm text-[#AEB6C2] leading-relaxed pl-8">
           JHODSY<br />
-          1-328, Kothapeta,<br />
-          VSMD 011, Rambilli, Anakapalli,<br />
-          Andhra Pradesh - 531061, India
+          Anakapalli, Vishakapatnam,<br />
+          Andhra Pradesh, India
         </p>
         <div className="pt-4 border-t border-white/10 flex flex-wrap gap-6 text-xs text-[#8994A3] pl-8">
           <span>GSTIN: <strong className="text-white">{BRAND_INFO.gst}</strong></span>

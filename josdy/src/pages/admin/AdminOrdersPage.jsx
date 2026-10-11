@@ -7,10 +7,10 @@ import logoUrl from '../../assets/logo.png';
 const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 const FROM_ADDRESS = {
   name: "JHODSY",
-  line1: "1-328, Kothapeta",
-  city: "Anakapalli",
+  line1: "Anakapalli",
+  city: "Vishakapatnam",
   state: "Andhra Pradesh",
-  pincode: "531061",
+  pincode: "531001",
   phone: "+91 80741 93553",
 };
 
@@ -955,8 +955,8 @@ const updateStatus = async (orderId, status) => {
       <div style="font-size:9pt;font-weight:700;color:#08183A;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8d5b0;padding-bottom:5px;margin-bottom:8px;">From</div>
       <div style="font-size:9.5pt;color:#555;line-height:1.6;">
         <strong style="color:#08183A;">JHODSY</strong><br>
-        1-328, Kothapeta, VSMD 011, Rambilli, Anakapalli<br>
-        Andhra Pradesh - 531061<br>
+        Anakapalli, Vishakapatnam<br>
+        Andhra Pradesh<br>
         Phone/WhatsApp: +91 80741 93553<br>
       </div>
     </td>

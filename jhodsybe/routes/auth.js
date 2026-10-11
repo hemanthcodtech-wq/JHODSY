@@ -262,7 +262,7 @@ router.post('/google', async (req, res) => {
 
       // Insert default address as name placeholder
       await sql`
-        INSERT INTO addresses (user_id, name, line1, city, state, pincode, mobile, is_default)
+        INSERT INTO addresses (user_id, name, phone, street, city, state, zip, is_default)
         VALUES (${user.id}, ${name || 'User'}, '', '', '', '', '', true)
       `;
     } else {

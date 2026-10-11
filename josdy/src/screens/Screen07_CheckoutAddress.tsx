@@ -2,7 +2,7 @@ import React from 'react';
 import { StatusBar } from '../components/common/StatusBar';
 import { AppHeader } from '../components/common/AppHeader';
 import { ScreenId } from '../types';
-import { User, Phone, MapPin, Home, Building2, ChevronDown, Compass } from 'lucide-react';
+import { User, Phone, MapPin, Home, Building2, Compass } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 interface Screen07CheckoutAddressProps {
@@ -158,24 +158,19 @@ export const Screen07_CheckoutAddress: React.FC<Screen07CheckoutAddressProps> = 
             />
           </div>
 
-          {/* State Dropdown */}
+          {/* State */}
           <div className="relative">
-            <select
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <Compass className="w-4 h-4 text-[#8994A3]" />
+            </div>
+            <input
+              type="text"
+              required
+              placeholder="State"
               value={orderAddress.state}
               onChange={(e) => setOrderAddress({ ...orderAddress, state: e.target.value })}
-              className="w-full bg-[#0B192D] border border-white/10 rounded-xl px-4 py-2.5 text-[12px] text-white focus:outline-none focus:border-white/30 appearance-none cursor-pointer"
-            >
-              <option value="Andhra Pradesh">Andhra Pradesh</option>
-              <option value="Telangana">Telangana</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Tamil Nadu">Tamil Nadu</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Delhi">Delhi</option>
-              <option value="Other">Other</option>
-            </select>
-            <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-[#8994A3]">
-              <ChevronDown className="w-4 h-4 stroke-[2]" />
-            </div>
+              className="w-full bg-[#0B192D] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-[12px] text-white placeholder-[#8994A3] focus:outline-none focus:border-white/30"
+            />
           </div>
 
           {/* Landmark (Optional) */}

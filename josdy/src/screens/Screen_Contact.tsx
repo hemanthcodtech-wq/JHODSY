@@ -97,9 +97,8 @@ export const Screen_Contact: React.FC<ScreenContactProps> = ({ onNavigate }) => 
           </div>
           <p className="text-[11.5px] text-[#AEB6C2] leading-relaxed pl-6">
             JHODSY<br />
-            1-328, Kothapeta,<br />
-            VSMD 011, Rambilli,<br />
-            Anakapalli, Andhra Pradesh - 531061
+            Anakapalli, Vishakapatnam,<br />
+            Andhra Pradesh
           </p>
           <div className="pt-2 border-t border-white/5 flex justify-between text-[10px] text-[#8994A3] pl-6">
             <span>GST: {BRAND_INFO.gst}</span>

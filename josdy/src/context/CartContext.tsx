@@ -49,7 +49,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orders, setOrders] = useState<Order[]>([]);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
+  const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
   useEffect(() => {
     const token = localStorage.getItem('token');

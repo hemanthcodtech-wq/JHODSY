@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Star, Plus, Trash2, Edit2, X, Save, MessageSquare, Upload, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
 const EMPTY = { name: '', rating: 5, review: '', image_url: '', is_active: true };
 

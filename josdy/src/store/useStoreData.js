@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api";
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || "http://localhost:3001/api";
 
 export const useStoreData = create((set) => ({
   products: [],

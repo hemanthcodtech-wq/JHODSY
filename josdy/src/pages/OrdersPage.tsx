@@ -4,7 +4,7 @@ import { Package, Truck } from 'lucide-react';
 import { JHODSY_ASSETS } from '../data/assets';
 import { useAuthStore } from '../store/useAuthStore';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
 export const OrdersPage: React.FC = () => {
   const { token } = useAuthStore();

@@ -15,12 +15,12 @@ export const BRAND_INFO = {
   email: 'jhodsyskin@gmail.com',
   timings: 'Mon - Sat, 9AM - 6PM',
   address: {
-    line1: '1-328, Kothapeta',
-    line2: 'VSMD 011, Rambilli',
-    city: 'Anakapalli',
+    line1: 'Anakapalli',
+    line2: 'Vishakapatnam',
+    city: 'Vishakapatnam',
     state: 'Andhra Pradesh',
-    pincode: '531061',
-    full: '1-328, Kothapeta, VSMD 011, Rambilli, Anakapalli, Andhra Pradesh - 531061'
+    pincode: '531001',
+    full: 'Anakapalli, Vishakapatnam, Andhra Pradesh'
   },
   gst: '37BZIPY7784D1ZJ',
   businessType: 'Retail',

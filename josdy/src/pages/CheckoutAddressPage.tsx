@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Phone, MapPin, Home, Building2, ChevronDown, Compass, ArrowRight, Plus } from 'lucide-react';
+import { User, Phone, MapPin, Home, Building2, Compass, ArrowRight, Plus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuthStore } from '../store/useAuthStore';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
+const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
 export const CheckoutAddressPage: React.FC = () => {
   const { orderAddress, setOrderAddress, subtotal, discount, total, cartItems } = useCart();
@@ -16,14 +16,13 @@ export const CheckoutAddressPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Form state for new address
   const [newAddr, setNewAddr] = useState({
     fullName: '',
     phoneNumber: '',
     pincode: '',
     city: '',
     address: '',
-    state: 'Andhra Pradesh',
+    state: '',
     landmark: ''
   });
 
@@ -198,7 +197,7 @@ export const CheckoutAddressPage: React.FC = () => {
                   <label className="text-xs font-semibold text-[#AEB6C2]">City *</label>
                   <div className="relative">
                     <Building2 className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                    <input type="text" required placeholder="e.g. Visakhapatnam" value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
+                    <input type="text" required placeholder="e.g. Vishakapatnam" value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
                   </div>
                 </div>
               </div>
@@ -206,21 +205,22 @@ export const CheckoutAddressPage: React.FC = () => {
                 <label className="text-xs font-semibold text-[#AEB6C2]">Street Address & Flat / House No. *</label>
                 <div className="relative">
                   <Home className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                  <input type="text" required placeholder="e.g. Flat 402, Skyline Apartments" value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
+                  <input type="text" required placeholder="e.g. Anakapalli, Vishakapatnam" value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-[#AEB6C2]">State *</label>
                   <div className="relative">
-                    <select value={newAddr.state} onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/40 appearance-none">
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="Telangana">Telangana</option>
-                      <option value="Karnataka">Karnataka</option>
-                      <option value="Maharashtra">Maharashtra</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-[#8994A3] absolute right-3.5 top-3.5 pointer-events-none" />
+                    <Compass className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Andhra Pradesh"
+                      value={newAddr.state}
+                      onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
+                      className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                    />
                   </div>
                 </div>
               </div>
