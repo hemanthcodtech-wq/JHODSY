@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { AppLayout } from './components/layout/AppLayout';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Auth and Admin imports
 import { LoginPage } from './pages/LoginPage';
@@ -55,7 +54,6 @@ export const App: React.FC = () => {
   }, [token, fetchProfile]);
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
     <CartProvider>
       <WishlistProvider>
         <Router basename={import.meta.env.BASE_URL}>
@@ -300,7 +298,6 @@ export const App: React.FC = () => {
         </Router>
       </WishlistProvider>
     </CartProvider>
-    </GoogleOAuthProvider>
   );
 };
 
