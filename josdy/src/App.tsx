@@ -124,7 +124,7 @@ export const App: React.FC = () => {
             <Route
               path="/checkout/address"
               element={
-                <AppLayout hideFooter={true}>
+                <AppLayout hideFooter={true} hideBottomNav={true}>
                   <CheckoutAddressPage />
                 </AppLayout>
               }
@@ -133,7 +133,7 @@ export const App: React.FC = () => {
             <Route
               path="/checkout/payment"
               element={
-                <AppLayout hideFooter={true}>
+                <AppLayout hideFooter={true} hideBottomNav={true}>
                   <CheckoutPaymentPage />
                 </AppLayout>
               }
@@ -142,7 +142,7 @@ export const App: React.FC = () => {
             <Route
               path="/checkout/review"
               element={
-                <AppLayout hideFooter={true}>
+                <AppLayout hideFooter={true} hideBottomNav={true}>
                   <CheckoutReviewPage />
                 </AppLayout>
               }

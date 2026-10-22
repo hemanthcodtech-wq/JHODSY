@@ -129,7 +129,7 @@ export const CheckoutReviewPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-14 sm:py-12 space-y-8">
       <div className="max-w-xl mx-auto flex items-center justify-between pb-4">
         <div className="flex items-center space-x-2 opacity-60">
           <div className="w-7 h-7 rounded-full bg-[#0B192D] border border-white/20 text-[#AEB6C2] text-xs font-medium flex items-center justify-center">1</div>

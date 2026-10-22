@@ -140,7 +140,7 @@ export const Footer: React.FC = () => {
               </a>
 
               <a
-                href={(BRAND_INFO as any).instagramUrl}
+                href='https://www.instagram.com/jhodsy_skin?dlrf=dHJwcmEza2RvMmtp'
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-[#E1306C] font-semibold hover:underline"

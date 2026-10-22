@@ -9,9 +9,10 @@ import { AnnouncementBar } from './AnnouncementBar';
 interface AppLayoutProps {
   children: React.ReactNode;
   hideFooter?: boolean;
+  hideBottomNav?: boolean;
 }
 
-export const AppLayout: React.FC<AppLayoutProps> = ({ children, hideFooter = false }) => {
+export const AppLayout: React.FC<AppLayoutProps> = ({ children, hideFooter = false, hideBottomNav = false }) => {
   const { pathname } = useLocation();
 
   useEffect(() => {
@@ -22,11 +23,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children, hideFooter = fal
     <div className="min-h-screen bg-[#05080D] text-[#F5F5F5] flex flex-col antialiased selection:bg-white/20 selection:text-white font-sans w-full overflow-x-clip">
       <AnnouncementBar />
       <Navbar />
-      <main className="flex-1 w-full">
+      <main className={`flex-1 w-full ${!hideBottomNav ? 'pb-20 md:pb-0' : 'pb-8'}`}>
         {children}
       </main>
       {!hideFooter && <Footer />}
-      <BottomNav />
+      {!hideBottomNav && <BottomNav />}
     </div>
   );
 };
