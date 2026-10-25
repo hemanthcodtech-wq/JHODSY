@@ -1178,7 +1178,7 @@ const updateStatus = async (orderId, status) => {
                     </span>
                     {order.payment_method === 'cod' && (
                       <span className="text-[9px] sm:text-[10px] font-bold font-sans px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                        COD (${order.total - (order.advance_paid || 0)} Pending)
+                        COD (₹{order.total} Pending)
                       </span>
                     )}
                     {Number(order.refund_amount) > 0 && (
@@ -1315,7 +1315,13 @@ const updateStatus = async (orderId, status) => {
                           </div>
                           <div className="flex items-start gap-2">
                             <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider w-14 shrink-0 mt-0.5">Payment</span>
-                            <span className="text-sm font-semibold text-white capitalize">{order.payment_method === 'razorpay' ? 'Online (Razorpay)' : order.payment_method || '—'}</span>
+                            <span className="text-sm font-semibold text-white">
+                              {order.payment_method === 'razorpay' || order.payment_method === 'online'
+                                ? 'Online (Razorpay)'
+                                : order.payment_method === 'cod'
+                                ? 'Cash on Delivery (COD)'
+                                : order.payment_method || '—'}
+                            </span>
                           </div>
                           {order.razorpay_payment_id && (
                             <div className="flex items-start gap-2 sm:col-span-2">

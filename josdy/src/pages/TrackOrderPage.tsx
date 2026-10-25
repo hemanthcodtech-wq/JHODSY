@@ -71,20 +71,33 @@ export const TrackOrderPage: React.FC = () => {
   };
 
   const getSteps = () => {
-    const status = order.status || 'Processing';
+    const rawStatus = (order.status || 'Processing').toLowerCase().trim();
     const created = formatDate(order.created_at);
     const estimated = order.estimated_delivery ? new Date(order.estimated_delivery).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Pending';
 
-    // Status mapping logic
-    const statusIndex = ['Processing', 'Quality Check', 'Dispatched', 'Out for Delivery', 'Delivered'].indexOf(status);
-    const currentIndex = statusIndex === -1 ? 0 : statusIndex;
+    // Map any backend/admin status to progress index:
+    // 0: Order Placed (pending, paid)
+    // 1: Confirmed & Quality Check (processing)
+    // 2: Dispatched (shipped, dispatched, ready for pickup)
+    // 3: Out for Delivery (out for delivery)
+    // 4: Delivered (delivered, pickup completed)
+    let currentIndex = 0;
+    if (rawStatus === 'processing' || rawStatus === 'quality check') {
+      currentIndex = 1;
+    } else if (rawStatus === 'shipped' || rawStatus === 'dispatched' || rawStatus === 'ready for pickup') {
+      currentIndex = 2;
+    } else if (rawStatus === 'out for delivery') {
+      currentIndex = 3;
+    } else if (rawStatus === 'delivered' || rawStatus === 'pickup completed') {
+      currentIndex = 4;
+    }
 
     return [
       { title: 'Order Placed', time: created, completed: currentIndex >= 0, current: currentIndex === 0 },
       { title: 'Confirmed & Quality Check', time: currentIndex >= 1 ? 'Completed' : 'Pending', completed: currentIndex >= 1, current: currentIndex === 1 },
       { title: 'Dispatched via Delhivery Express', time: currentIndex >= 2 ? 'Completed' : 'Pending', completed: currentIndex >= 2, current: currentIndex === 2 },
       { title: 'Out for Delivery', time: `Expected ${estimated}`, completed: currentIndex >= 3, current: currentIndex === 3 },
-      { title: 'Delivered to Doorstep', time: `Expected ${estimated}`, completed: currentIndex >= 4, current: currentIndex === 4 }
+      { title: 'Delivered to Doorstep', time: currentIndex >= 4 ? 'Delivered' : `Expected ${estimated}`, completed: currentIndex >= 4, current: currentIndex === 4 }
     ];
   };
 
@@ -123,7 +136,7 @@ export const TrackOrderPage: React.FC = () => {
             <span className="text-xs text-[#8994A3]">Courier Partner</span>
             <h3 className="text-base font-bold text-white">Delhivery Express Logistics</h3>
           </div>
-          <span className="inline-block self-start sm:self-auto px-3.5 py-1 rounded-full bg-white text-[#071426] text-xs font-bold shadow">
+          <span className="inline-block self-start sm:self-auto px-3.5 py-1 rounded-full bg-white text-[#071426] text-xs font-bold capitalize shadow">
             {order.status || 'Processing'}
           </span>
         </div>

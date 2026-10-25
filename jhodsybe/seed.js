@@ -54,6 +54,10 @@ async function seed() {
         address_id INTEGER REFERENCES addresses(id) ON DELETE SET NULL,
         status VARCHAR(50) NOT NULL DEFAULT 'Processing',
         total DECIMAL(10, 2) NOT NULL,
+        payment_method VARCHAR(50) DEFAULT 'online',
+        razorpay_order_id VARCHAR(255),
+        razorpay_payment_id VARCHAR(255),
+        razorpay_signature VARCHAR(255),
         tracking_number VARCHAR(100),
         estimated_delivery VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -44,6 +44,32 @@ export const CheckoutReviewPage: React.FC = () => {
         return;
       }
 
+      // Check if Cash on Delivery (COD)
+      if (paymentMethod === 'cod') {
+        const orderRes = await fetch(`${BACKEND_URL}/orders`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            addressId: orderAddress.id,
+            total: total,
+            items: items,
+            paymentMethod: 'cod'
+          })
+        });
+
+        const orderData = await orderRes.json();
+        if (orderRes.ok) {
+          clearCart();
+          navigate('/order-success', { state: { order: orderData.order } });
+        } else {
+          alert(orderData.error || 'Failed to place order');
+        }
+        return;
+      }
+
       // Online (Razorpay) Flow
       // 1. Create Razorpay order
       const res = await fetch(`${BACKEND_URL}/orders/razorpay/create`, {
@@ -158,6 +184,21 @@ export const CheckoutReviewPage: React.FC = () => {
               <p className="text-sm font-bold text-white">{orderAddress.fullName}</p>
               <p className="text-xs text-[#8994A3] mt-1">{orderAddress.address}, {orderAddress.city}, {orderAddress.state} {orderAddress.pincode}</p>
               <p className="text-xs text-[#8994A3] mt-1">Phone: {orderAddress.phoneNumber}</p>
+            </div>
+          </div>
+
+          <div className="bg-[#0B192D] border border-white/10 rounded-3xl p-6 shadow-card-dark space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">Payment Method</h3>
+              <Link to="/checkout/payment" className="text-xs font-bold text-[#AEB6C2] hover:text-white">Edit</Link>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">
+                {paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Pay Online (Razorpay)'}
+              </p>
+              <p className="text-xs text-[#8994A3] mt-1">
+                {paymentMethod === 'cod' ? 'Pay with cash upon delivery at your doorstep' : 'UPI, NetBanking, Credit/Debit Cards, Wallets'}
+              </p>
             </div>
           </div>
           

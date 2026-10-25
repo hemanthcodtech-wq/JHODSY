@@ -423,6 +423,28 @@ router.get('/orders', async (req, res) => {
   }
 });
 
+// Update Order Status
+router.put('/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    if (!status) return res.status(400).json({ error: 'Status is required' });
+
+    const result = await sql`
+      UPDATE orders
+      SET status = ${status}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (result.length === 0) return res.status(404).json({ error: 'Order not found' });
+    res.json({ success: true, order: result[0] });
+  } catch (error) {
+    console.error("UPDATE ORDER STATUS ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Delivery Partners
 router.get('/delivery-partners', (req, res) => {
   res.json({ partners: [] });

@@ -32,7 +32,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const orders = await sql`
-      SELECT id, status, total, tracking_number, estimated_delivery, created_at
+      SELECT id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, created_at
       FROM orders
       WHERE user_id = ${userId}
       ORDER BY created_at DESC
@@ -55,11 +55,11 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/orders - Create a new order
+// POST /api/orders - Create a new order (COD or standard)
 router.post('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { addressId, total, items } = req.body;
+    const { addressId, total, items, paymentMethod = 'cod' } = req.body;
 
     if (!addressId || !total || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Missing required order data' });
@@ -72,9 +72,9 @@ router.post('/', verifyToken, async (req, res) => {
 
     // Create the order
     const newOrder = await sql`
-      INSERT INTO orders (user_id, address_id, status, total, estimated_delivery)
-      VALUES (${userId}, ${addressId}, 'Processing', ${total}, ${estimatedDelivery})
-      RETURNING id, status, total, tracking_number, estimated_delivery, created_at
+      INSERT INTO orders (user_id, address_id, status, total, payment_method, estimated_delivery)
+      VALUES (${userId}, ${addressId}, 'Processing', ${total}, ${paymentMethod}, ${estimatedDelivery})
+      RETURNING id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, created_at
     `;
 
     const orderId = newOrder[0].id;
@@ -157,9 +157,9 @@ router.post('/razorpay/verify', verifyToken, async (req, res) => {
     const estimatedDelivery = deliveryDate.toISOString().split('T')[0];
 
     const newOrder = await sql`
-      INSERT INTO orders (user_id, address_id, status, total, estimated_delivery)
-      VALUES (${userId}, ${addressId}, 'Processing', ${total}, ${estimatedDelivery})
-      RETURNING id, status, total, tracking_number, estimated_delivery, created_at
+      INSERT INTO orders (user_id, address_id, status, total, payment_method, razorpay_order_id, razorpay_payment_id, razorpay_signature, estimated_delivery)
+      VALUES (${userId}, ${addressId}, 'Processing', ${total}, 'razorpay', ${razorpay_order_id}, ${razorpay_payment_id}, ${razorpay_signature}, ${estimatedDelivery})
+      RETURNING id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, created_at
     `;
 
     const orderId = newOrder[0].id;

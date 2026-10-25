@@ -13,6 +13,12 @@ export const CheckoutPaymentPage: React.FC = () => {
       name: 'Pay Online (Razorpay)',
       subtitle: 'UPI, Credit/Debit Cards, NetBanking, Wallets',
       icon: Smartphone
+    },
+    {
+      id: 'cod',
+      name: 'Cash on Delivery (COD)',
+      subtitle: 'Pay with cash upon delivery at your doorstep',
+      icon: Banknote
     }
   ];
 

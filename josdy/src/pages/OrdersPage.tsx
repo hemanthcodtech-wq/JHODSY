@@ -58,7 +58,22 @@ export const OrdersPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">{order.status}</span>
+                  {order.payment_method === 'cod' && (
+                    <span className="text-xs font-bold text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
+                      COD
+                    </span>
+                  )}
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${
+                    (order.status || '').toLowerCase() === 'cancelled'
+                      ? 'text-red-400 bg-red-400/10 border-red-400/20'
+                      : (order.status || '').toLowerCase() === 'delivered'
+                      ? 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20'
+                      : (order.status || '').toLowerCase() === 'shipped' || (order.status || '').toLowerCase() === 'out for delivery'
+                      ? 'text-purple-400 bg-purple-400/10 border-purple-400/20'
+                      : 'text-blue-400 bg-blue-400/10 border-blue-400/20'
+                  }`}>
+                    {order.status}
+                  </span>
                   <span className="text-base font-bold text-white">₹{order.total}</span>
                 </div>
               </div>
