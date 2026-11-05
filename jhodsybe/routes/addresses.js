@@ -25,7 +25,7 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const addresses = await sql`
-      SELECT id, name, phone, street, city, state, zip, is_default
+      SELECT id, name, phone, street, city, state, zip, is_default, country, flat_house, area_street, landmark
       FROM addresses
       WHERE user_id = ${userId}
       ORDER BY is_default DESC, created_at DESC
@@ -41,9 +41,11 @@ router.get('/', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { name, phone, street, city, state, zip, isDefault } = req.body;
+    const { name, phone, street, city, state, zip, isDefault, country, flat_house, area_street, landmark } = req.body;
 
-    if (!name || !phone || !street || !city || !state || !zip) {
+    const resolvedStreet = street || [flat_house, area_street, landmark].filter(Boolean).join(', ');
+
+    if (!name || !phone || !resolvedStreet || !city || !state || !zip) {
       return res.status(400).json({ error: 'All fields are required' });
     }
 
@@ -56,9 +58,9 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     const newAddress = await sql`
-      INSERT INTO addresses (user_id, name, phone, street, city, state, zip, is_default)
-      VALUES (${userId}, ${name}, ${phone}, ${street}, ${city}, ${state}, ${zip}, ${makeDefault})
-      RETURNING id, name, phone, street, city, state, zip, is_default
+      INSERT INTO addresses (user_id, name, phone, street, city, state, zip, is_default, country, flat_house, area_street, landmark)
+      VALUES (${userId}, ${name}, ${phone}, ${resolvedStreet}, ${city}, ${state}, ${zip}, ${makeDefault}, ${country || 'India'}, ${flat_house || ''}, ${area_street || ''}, ${landmark || ''})
+      RETURNING id, name, phone, street, city, state, zip, is_default, country, flat_house, area_street, landmark
     `;
 
     res.status(201).json({ message: 'Address added successfully', address: newAddress[0] });

@@ -11,6 +11,7 @@ interface CartContextType {
   subtotal: number;
   shipping: number;
   discount: number;
+  gstAmount: number;
   total: number;
   couponCode: string;
   appliedCoupon: string | null;
@@ -33,6 +34,9 @@ const emptyAddress: OrderAddress = {
   address: '',
   city: '',
   state: '',
+  country: 'India',
+  flatHouse: '',
+  areaStreet: '',
   landmark: ''
 };
 
@@ -226,7 +230,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
   const shipping = 0; // Free shipping
   const discount = appliedCoupon ? Math.round(subtotal * (couponDiscountPercentage / 100)) : 0;
-  const total = Math.max(0, subtotal - discount + shipping);
+  const taxableAmount = Math.max(0, subtotal - discount + shipping);
+  // 9% GST added only for Cash on Delivery (COD); Prepaid (Online) has no extra GST
+  const gstAmount = paymentMethod === 'cod' ? Math.round(taxableAmount * 0.09) : 0;
+  const total = taxableAmount + gstAmount;
 
   const placeOrder = (): Order => {
     const newOrder: Order = {
@@ -261,6 +268,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         subtotal,
         shipping,
         discount,
+        gstAmount,
         total,
         couponCode,
         appliedCoupon,

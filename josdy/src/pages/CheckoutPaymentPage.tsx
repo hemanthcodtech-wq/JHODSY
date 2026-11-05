@@ -4,7 +4,7 @@ import { Smartphone, CreditCard, Landmark, Banknote, ShieldCheck, ArrowRight, Ch
 import { useCart } from '../context/CartContext';
 
 export const CheckoutPaymentPage: React.FC = () => {
-  const { paymentMethod, setPaymentMethod, total, subtotal, discount, cartItems } = useCart();
+  const { paymentMethod, setPaymentMethod, total, subtotal, discount, gstAmount, cartItems } = useCart();
   const navigate = useNavigate();
 
   const paymentOptions = [
@@ -12,12 +12,14 @@ export const CheckoutPaymentPage: React.FC = () => {
       id: 'online',
       name: 'Pay Online (Razorpay)',
       subtitle: 'UPI, Credit/Debit Cards, NetBanking, Wallets',
+      badge: 'No Extra Fee',
       icon: Smartphone
     },
     {
       id: 'cod',
       name: 'Cash on Delivery (COD)',
-      subtitle: 'Pay with cash upon delivery at your doorstep',
+      subtitle: 'Pay with cash upon delivery at your doorstep (+9% GST applies)',
+      badge: '+9% GST',
       icon: Banknote
     }
   ];
@@ -147,6 +149,13 @@ export const CheckoutPaymentPage: React.FC = () => {
             <span>Shipping</span>
             <span className="text-white font-medium">FREE</span>
           </div>
+
+          {paymentMethod === 'cod' && (
+            <div className="flex justify-between text-amber-300">
+              <span>COD GST (9%)</span>
+              <span>+ ₹{gstAmount}</span>
+            </div>
+          )}
 
           <div className="pt-3 border-t border-white/10 flex justify-between items-baseline font-bold text-white">
             <span className="text-sm">Final Amount</span>

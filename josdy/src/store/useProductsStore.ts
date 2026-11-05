@@ -6,7 +6,7 @@ interface ProductsState {
   products: any[];
   loading: boolean;
   fetched: boolean;
-  fetchProducts: () => Promise<void>;
+  fetchProducts: (force?: boolean) => Promise<void>;
   getProduct: (id: string | number) => Promise<any>;
 }
 
@@ -14,8 +14,8 @@ export const useProductsStore = create<ProductsState>((set, get) => ({
   products: [],
   loading: false,
   fetched: false,
-  fetchProducts: async () => {
-    if (get().fetched) return; // cache locally
+  fetchProducts: async (force = false) => {
+    if (get().fetched && !force) return; // cache locally unless force refresh
     
     set({ loading: true });
     try {

@@ -41,6 +41,9 @@ export interface OrderAddress {
   address: string;
   city: string;
   state: string;
+  country?: string;
+  flatHouse?: string;
+  areaStreet?: string;
   landmark?: string;
 }
 

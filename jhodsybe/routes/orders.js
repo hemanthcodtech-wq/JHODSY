@@ -32,14 +32,32 @@ router.get('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const orders = await sql`
-      SELECT id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, created_at
-      FROM orders
-      WHERE user_id = ${userId}
-      ORDER BY created_at DESC
+      SELECT o.id, o.status, o.total, o.payment_method, o.razorpay_payment_id, o.tracking_number, o.estimated_delivery, o.created_at,
+             a.name as address_name, a.phone as address_phone, a.street, a.city, a.state, a.zip, a.country, a.flat_house, a.area_street, a.landmark
+      FROM orders o
+      LEFT JOIN addresses a ON o.address_id = a.id
+      WHERE o.user_id = ${userId}
+      ORDER BY o.created_at DESC
     `;
 
     // Fetch items for each order
     for (let order of orders) {
+      order.address = {
+        fullName: order.address_name || '',
+        name: order.address_name || '',
+        phoneNumber: order.address_phone || '',
+        phone: order.address_phone || '',
+        address: order.street || '',
+        street: order.street || '',
+        flatHouse: order.flat_house || '',
+        areaStreet: order.area_street || '',
+        landmark: order.landmark || '',
+        city: order.city || '',
+        state: order.state || '',
+        pincode: order.zip || '',
+        country: order.country || 'India'
+      };
+
       const items = await sql`
         SELECT product_id, product_name, quantity, price, size
         FROM order_items
@@ -59,7 +77,7 @@ router.get('/', verifyToken, async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { addressId, total, items, paymentMethod = 'cod' } = req.body;
+    const { addressId, total, items, paymentMethod = 'cod', taxAmount, subtotal } = req.body;
 
     if (!addressId || !total || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'Missing required order data' });
@@ -70,11 +88,15 @@ router.post('/', verifyToken, async (req, res) => {
     deliveryDate.setDate(deliveryDate.getDate() + 5);
     const estimatedDelivery = deliveryDate.toISOString().split('T')[0];
 
+    // Compute or take 9% GST for COD, 0 for prepaid
+    const calculatedTax = paymentMethod === 'cod' ? (taxAmount ?? Math.round((total / 1.09) * 0.09)) : 0;
+    const calculatedSubtotal = subtotal ?? (total - calculatedTax);
+
     // Create the order
     const newOrder = await sql`
-      INSERT INTO orders (user_id, address_id, status, total, payment_method, estimated_delivery)
-      VALUES (${userId}, ${addressId}, 'Processing', ${total}, ${paymentMethod}, ${estimatedDelivery})
-      RETURNING id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, created_at
+      INSERT INTO orders (user_id, address_id, status, total, payment_method, estimated_delivery, tax_amount, subtotal)
+      VALUES (${userId}, ${addressId}, 'Processing', ${total}, ${paymentMethod}, ${estimatedDelivery}, ${calculatedTax}, ${calculatedSubtotal})
+      RETURNING id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, tax_amount, subtotal, created_at
     `;
 
     const orderId = newOrder[0].id;
@@ -157,9 +179,9 @@ router.post('/razorpay/verify', verifyToken, async (req, res) => {
     const estimatedDelivery = deliveryDate.toISOString().split('T')[0];
 
     const newOrder = await sql`
-      INSERT INTO orders (user_id, address_id, status, total, payment_method, razorpay_order_id, razorpay_payment_id, razorpay_signature, estimated_delivery)
-      VALUES (${userId}, ${addressId}, 'Processing', ${total}, 'razorpay', ${razorpay_order_id}, ${razorpay_payment_id}, ${razorpay_signature}, ${estimatedDelivery})
-      RETURNING id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, created_at
+      INSERT INTO orders (user_id, address_id, status, total, payment_method, razorpay_order_id, razorpay_payment_id, razorpay_signature, estimated_delivery, tax_amount, subtotal)
+      VALUES (${userId}, ${addressId}, 'Processing', ${total}, 'razorpay', ${razorpay_order_id}, ${razorpay_payment_id}, ${razorpay_signature}, ${estimatedDelivery}, 0, ${total})
+      RETURNING id, status, total, payment_method, razorpay_payment_id, tracking_number, estimated_delivery, tax_amount, subtotal, created_at
     `;
 
     const orderId = newOrder[0].id;

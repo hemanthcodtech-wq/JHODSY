@@ -60,11 +60,27 @@ router.get('/products', async (req, res) => {
 router.post('/products', async (req, res) => {
   try {
     const { name, tagline, price, mrp, description, benefits, howToUse, ingredients, images, variants, sizes, category_id, stock } = req.body;
+    
+    // Ensure product-level images includes variant images if images is empty
+    let finalImages = images || [];
+    if ((!finalImages || finalImages.length === 0) && Array.isArray(variants)) {
+      finalImages = variants.flatMap(v => v.images || []).filter(Boolean);
+    }
+
     const result = await sql`
       INSERT INTO products (name, tagline, price, mrp, description, benefits, how_to_use, ingredients, images, variants, sizes, category_id, stock)
-      VALUES (${name}, ${tagline||''}, ${price}, ${mrp||price}, ${description}, ${JSON.stringify(benefits||[])}, ${JSON.stringify(howToUse||[])}, ${JSON.stringify(ingredients||[])}, ${JSON.stringify(images||[])}, ${JSON.stringify(variants||[])}, ${JSON.stringify(sizes||[])}, ${category_id || null}, ${stock || 0})
+      VALUES (${name}, ${tagline||''}, ${price}, ${mrp||price}, ${description}, ${JSON.stringify(benefits||[])}, ${JSON.stringify(howToUse||[])}, ${JSON.stringify(ingredients||[])}, ${JSON.stringify(finalImages)}, ${JSON.stringify(variants||[])}, ${JSON.stringify(sizes||[])}, ${category_id || null}, ${stock || 0})
       RETURNING *
     `;
+
+    // Invalidate Redis products cache
+    try {
+      const redisClient = require('../redis');
+      await redisClient.del('all_products');
+    } catch (e) {
+      console.error('Redis cache invalidation error:', e.message);
+    }
+
     res.json({ success: true, product: result[0] });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -73,6 +89,18 @@ router.put('/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, tagline, price, mrp, description, benefits, howToUse, ingredients, images, variants, sizes, category_id, stock } = req.body;
+
+    // Ensure product-level images includes variant images if images is empty or variants were updated
+    let finalImages = images || [];
+    if ((!finalImages || finalImages.length === 0) && Array.isArray(variants)) {
+      finalImages = variants.flatMap(v => v.images || []).filter(Boolean);
+    } else if (Array.isArray(variants)) {
+      const variantImages = variants.flatMap(v => v.images || []).filter(Boolean);
+      if (variantImages.length > 0) {
+        finalImages = variantImages;
+      }
+    }
+
     const result = await sql`
       UPDATE products 
       SET 
@@ -84,7 +112,7 @@ router.put('/products/:id', async (req, res) => {
         benefits = ${JSON.stringify(benefits||[])}, 
         how_to_use = ${JSON.stringify(howToUse||[])}, 
         ingredients = ${JSON.stringify(ingredients||[])}, 
-        images = ${JSON.stringify(images||[])}, 
+        images = ${JSON.stringify(finalImages)}, 
         variants = ${JSON.stringify(variants||[])}, 
         sizes = ${JSON.stringify(sizes||[])}, 
         category_id = ${category_id || null}, 
@@ -92,6 +120,16 @@ router.put('/products/:id', async (req, res) => {
       WHERE id = ${id}
       RETURNING *
     `;
+
+    // Invalidate Redis products cache
+    try {
+      const redisClient = require('../redis');
+      await redisClient.del('all_products');
+      await redisClient.del(`product_${id}`);
+    } catch (e) {
+      console.error('Redis cache invalidation error:', e.message);
+    }
+
     res.json({ success: true, product: result[0] });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -99,6 +137,16 @@ router.put('/products/:id', async (req, res) => {
 router.delete('/products/:id', async (req, res) => {
   try {
     await sql`DELETE FROM products WHERE id = ${req.params.id}`;
+
+    // Invalidate Redis products cache
+    try {
+      const redisClient = require('../redis');
+      await redisClient.del('all_products');
+      await redisClient.del(`product_${req.params.id}`);
+    } catch (e) {
+      console.error('Redis cache invalidation error:', e.message);
+    }
+
     res.json({ success: true });
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
@@ -384,6 +432,7 @@ router.get('/orders', async (req, res) => {
   try {
     const orders = await sql`
       SELECT o.*, a.name as address_name, a.phone as address_phone, a.street, a.city, a.state, a.zip,
+             a.country, a.flat_house, a.area_street, a.landmark,
              u.email as user_email
       FROM orders o 
       LEFT JOIN addresses a ON o.address_id = a.id
@@ -397,10 +446,17 @@ router.get('/orders', async (req, res) => {
         name: o.address_name || '',
         mobile: o.address_phone || '',
         phone: o.address_phone || '',
-        street: o.street,
-        city: o.city,
-        state: o.state,
-        zip: o.zip
+        street: o.street || '',
+        line1: o.flat_house || o.street || '',
+        line2: o.area_street || '',
+        flat_house: o.flat_house || '',
+        area_street: o.area_street || '',
+        landmark: o.landmark || '',
+        city: o.city || '',
+        state: o.state || '',
+        pincode: o.zip || '',
+        zip: o.zip || '',
+        country: o.country || 'India'
       };
       
       const items = await sql`

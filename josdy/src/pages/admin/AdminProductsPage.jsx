@@ -174,6 +174,12 @@ export function AdminProductsPage() {
         payload.stock = payload.variants[0].sizes[0].stock;
       }
       
+      // Collect all variant images into the product-level images array
+      const allVariantImages = (payload.variants || []).flatMap(v => v.images || []).filter(Boolean);
+      if (allVariantImages.length > 0) {
+        payload.images = allVariantImages;
+      }
+      
       const res = await fetch(url, {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },

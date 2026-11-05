@@ -414,8 +414,17 @@ function EditOrderModal({ order, onClose, onSaved }) {
             <div>
               <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-3">Shipping Address</p>
               <div className="grid grid-cols-2 gap-2">
-                {[['name','Full Name'],['line1','Address Line 1'],['line2','Line 2 (optional)'],['city','City'],['state','State'],['pincode','ZIP']].map(([field, label]) => (
-                  <div key={field} className={field === 'line1' ? 'col-span-2' : ''}>
+                {[
+                  ['name', 'Full Name'],
+                  ['flat_house', 'Flat / House No. / Building'],
+                  ['area_street', 'Area / Street / Sector'],
+                  ['landmark', 'Landmark (Optional)'],
+                  ['city', 'Town / City'],
+                  ['state', 'State'],
+                  ['pincode', 'Pincode (ZIP)'],
+                  ['country', 'Country']
+                ].map(([field, label]) => (
+                  <div key={field} className={['flat_house', 'area_street'].includes(field) ? 'col-span-2' : ''}>
                     <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider block mb-1">{label}</label>
                     <input value={address[field] || ''} onChange={e => setAddress(a => ({ ...a, [field]: e.target.value }))}
                       className="w-full text-sm border border-white/10 rounded-xl px-3 py-2 bg-white/[0.02] text-white focus:outline-none focus:border-white/20" />
@@ -965,10 +974,11 @@ const updateStatus = async (orderId, status) => {
     <td style="width:50%;vertical-align:top;padding:12px;border:1px solid #e8d5b0;background:#FFFAF9;border-radius:4px;">
       <div style="font-size:9pt;font-weight:700;color:#08183A;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid #e8d5b0;padding-bottom:5px;margin-bottom:8px;">Ship To</div>
       <div style="font-size:9.5pt;color:#555;line-height:1.6;">
-        <strong style="color:#08183A;">${escapeHtml(address.name || '')}</strong><br>
-        ${escapeHtml(address.line1 || '')}${address.line2 ? ', ' + escapeHtml(address.line2) : ''}<br>
-        ${escapeHtml(address.city || '')}, ${escapeHtml(address.state || '')} ${escapeHtml(address.pincode || '')}<br>
-        ${address.mobile ? `<strong>Phone:</strong> ${escapeHtml(address.mobile)}` : ''}
+        <strong style="color:#08183A;">${escapeHtml(address.name || order.user_name || '')}</strong><br>
+        ${escapeHtml(address.flat_house || address.line1 || '')}${address.area_street || address.line2 ? '<br>' + escapeHtml(address.area_street || address.line2) : ''}${address.landmark ? '<br>Landmark: ' + escapeHtml(address.landmark) : ''}<br>
+        ${escapeHtml(address.city || '')}, ${escapeHtml(address.state || '')} ${escapeHtml(address.pincode || address.zip || '')}<br>
+        ${address.country ? escapeHtml(address.country) + '<br>' : 'India<br>'}
+        ${address.mobile || address.phone || order.user_phone ? `<strong>Phone:</strong> ${escapeHtml(address.mobile || address.phone || order.user_phone)}` : ''}
       </div>
     </td>` : ''}
   </tr>
@@ -1052,11 +1062,15 @@ const updateStatus = async (orderId, status) => {
 
     const itemRows = items.map((item) => {
       const unitStr = item.variant?.size ? ` (${escapeHtml(item.variant?.size)})` : '';
-      return `<div style="display:flex;justify-content:space-between;padding:1.5mm 0;border-bottom:1px solid #eee;">
-        <div style="font-size:8pt;font-weight:600;flex:1;padding-right:3mm;">${escapeHtml(item.product?.name)}${unitStr}</div>
-        <div style="font-size:8pt;color:#555;white-space:nowrap;">x${item.qty}</div>
+      return `<div style="display:flex;justify-content:space-between;padding:1.5mm 0;border-bottom:1px solid #f0f0f0;">
+        <div style="font-size:8pt;font-weight:700;flex:1;padding-right:3mm;color:#111;">${escapeHtml(item.product?.name)}${unitStr}</div>
+        <div style="font-size:8pt;color:#333;font-weight:600;white-space:nowrap;">x${item.qty}</div>
       </div>`;
     }).join('');
+
+    const isCod = order.payment_method === 'cod' || String(order.payment_method).toLowerCase().includes('cash');
+    const paymentLabel = isCod ? 'COD' : 'PREPAID';
+    const amountVal = Math.round(Number(order.total || 0));
 
     const html = `<!doctype html>
 <html lang="en">
@@ -1066,19 +1080,26 @@ const updateStatus = async (orderId, status) => {
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   @page{size:100mm 160mm;margin:0}
-  body{font-family:Arial,Helvetica,sans-serif;width:100mm;background:#fff;font-size:9pt}
-  .box{border:2.5px solid #111;margin:3mm;border-radius:2mm;overflow:hidden}
-  .hdr{background:#C8401A;color:#fff;padding:3.5mm 4mm;display:flex;justify-content:space-between;align-items:center}
-  .brand{font-size:16pt;font-weight:900;letter-spacing:-0.5px}
-  .oid{background:#fff;color:#C8401A;font-size:10pt;font-weight:900;padding:1px 8px;border-radius:999px}
-  .sec{padding:2.5mm 4mm;border-bottom:1px dashed #bbb}
-  .lbl{font-size:5.5pt;text-transform:uppercase;letter-spacing:1px;color:#888;font-weight:700;margin-bottom:1mm}
-  .val{font-size:10.5pt;font-weight:700;color:#111;line-height:1.35}
-  .sm{font-size:8pt;color:#444;line-height:1.5}
-  .items{padding:2.5mm 4mm}
-  .ftr{background:#fef6f3;padding:3mm 4mm;border-top:1px solid #ddd;display:flex;justify-content:flex-end;align-items:center}
-  .dt{font-size:7pt;color:#aaa;text-align:right;line-height:1.6}
-  .no-print{text-align:center;padding:10px}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;width:100mm;background:#fff;font-size:9pt;color:#111}
+  .box{border:2.5px solid #1a1a2e;margin:3mm;border-radius:3mm;overflow:hidden;background:#fff}
+  .hdr{background:#B83814;color:#fff;padding:3.5mm 4mm 2.5mm 4mm;display:flex;justify-content:space-between;align-items:center}
+  .brand{font-size:15pt;font-weight:900;letter-spacing:-0.5px}
+  .oid{background:#fff;color:#B83814;font-size:9.5pt;font-weight:900;padding:1px 8px;border-radius:999px}
+  .sub-hdr{background:#9B2E10;color:#fce4dc;padding:2mm 4mm;font-size:7pt;font-weight:700;letter-spacing:0.4px;line-height:1.4}
+  .split{display:flex;border-bottom:1px dashed #bbb}
+  .col-from{width:48%;padding:2.5mm 3.5mm;border-right:1px solid #e0e0e0;background:#fafafa}
+  .col-ship{width:52%;padding:2.5mm 3.5mm;background:#fff}
+  .lbl{font-size:6pt;text-transform:uppercase;letter-spacing:0.8px;color:#777;font-weight:800;margin-bottom:1mm}
+  .val{font-size:9.5pt;font-weight:800;color:#111;line-height:1.3}
+  .sm{font-size:7.5pt;color:#333;line-height:1.4}
+  .items{padding:2.5mm 4mm;border-bottom:1px dashed #bbb}
+  .ftr-bar{background:#FFFAF9;padding:2.5mm 4mm;display:flex;justify-content:space-between;align-items:center}
+  .ftr-col{display:flex;flex-direction:column}
+  .ftr-lbl{font-size:6pt;text-transform:uppercase;letter-spacing:0.8px;color:#777;font-weight:800}
+  .ftr-val{font-size:10pt;font-weight:900;color:#111}
+  .ftr-divider{width:1px;background:#e5d5cf;height:24px;margin:0 4px}
+  .dt{font-size:7pt;color:#888;text-align:right}
+  .no-print{text-align:center;padding:12px}
   @media print{.no-print{display:none!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}
 </style>
 </head>
@@ -1088,27 +1109,55 @@ const updateStatus = async (orderId, status) => {
     <div class="brand">JHODSY</div>
     <div class="oid">#${order.order_number || order.id}</div>
   </div>
-  <div class="sec">
-    <div class="lbl">Ship To</div>
-    <div class="val">${escapeHtml(address.name || '')}</div>
-    <div class="sm">${escapeHtml(address.line1 || '')}${address.line2 ? ', ' + escapeHtml(address.line2) : ''}</div>
-    <div class="sm">${escapeHtml(address.city || '')}, ${escapeHtml(address.state || '')} - ${escapeHtml(address.pincode || '')}, USA</div>
-    ${address.mobile ? '<div class="sm" style="font-weight:700;margin-top:1mm;">Ph: ' + escapeHtml(address.mobile) + '</div>' : ''}
+  <div class="sub-hdr">
+    <div>CUSTOMER ID: 1756721938</div>
+    <div>CONTRACT ID: 41642433</div>
   </div>
- 
+  
+  <div class="split">
+    <div class="col-from">
+      <div class="lbl">From</div>
+      <div class="sm" style="line-height:1.45;">
+        Atchutapuram, Anakapalli,<br>
+        Andhra Pradesh - 531011<br>
+        <span style="font-weight:700;color:#111;">Ph: 8074193553</span>
+      </div>
+    </div>
+    <div class="col-ship">
+      <div class="lbl">Ship To</div>
+      <div class="val">${escapeHtml(address.name || order.user_name || '')}</div>
+      <div class="sm">
+        ${escapeHtml(address.flat_house || address.line1 || '')}${address.area_street || address.line2 ? ', ' + escapeHtml(address.area_street || address.line2) : ''}
+        ${address.landmark ? '<br>Near ' + escapeHtml(address.landmark) : ''}
+        ${escapeHtml(address.city || '')}, ${escapeHtml(address.state || '')}
+      </div>
+      ${(address.mobile || address.phone || order.user_phone) ? '<div class="sm" style="font-weight:700;margin-top:1mm;color:#111;">Ph: ' + escapeHtml(address.mobile || address.phone || order.user_phone) + '</div>' : ''}
+    </div>
+  </div>
+
   <div class="items">
-    <div class="lbl" style="margin-bottom:2mm;">Order Items (${items.length})</div>
+    <div class="lbl" style="margin-bottom:1.5mm;">Order Items (${items.length})</div>
     ${itemRows}
   </div>
-  <div class="ftr">
-    <div class="dt">
-      ${new Date(order.created_at).toLocaleDateString('en-IN')}
+
+  <div class="ftr-bar">
+    <div class="ftr-col" style="min-width:70px;">
+      <span class="ftr-lbl">Payment</span>
+      <span class="ftr-val" style="color:${isCod ? '#B83814' : '#15803d'};">${paymentLabel}</span>
+    </div>
+    <div class="ftr-divider"></div>
+    <div class="ftr-col" style="min-width:80px;">
+      <span class="ftr-lbl">Amount</span>
+      <span class="ftr-val">${amountVal}/-</span>
+    </div>
+    <div class="dt" style="margin-left:auto;">
+      ${new Date(order.created_at).toLocaleDateString('en-GB')}
       ${order.tracking_id ? '<br>AWB: ' + escapeHtml(order.tracking_id) : ''}
     </div>
   </div>
 </div>
 <div class="no-print">
-  <button onclick="window.print()" style="background:#C8401A;color:#fff;border:none;padding:8px 28px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;">
+  <button onclick="window.print()" style="background:#C8401A;color:#fff;border:none;padding:10px 32px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(200,64,26,0.3);">
     Print Label
   </button>
 </div>
@@ -1285,8 +1334,17 @@ const updateStatus = async (orderId, status) => {
                       try { address = typeof order.address === 'string' ? JSON.parse(order.address) : (order.address || {}); } catch(e) {}
                       const name = order.user_name || address.name || 'Guest';
                       const email = order.user_email || '—';
-                      const phone = order.user_phone || address.mobile || '—';
-                      const addr = [address.line1, address.city, address.state, address.pincode].filter(Boolean).join(', ');
+                      const phone = order.user_phone || address.mobile || address.phone || '—';
+                      const addrParts = [
+                        address.flat_house || address.line1,
+                        address.area_street || address.line2,
+                        address.landmark ? `Near ${address.landmark}` : '',
+                        address.city,
+                        address.state,
+                        address.pincode || address.zip,
+                        address.country || 'India'
+                      ].filter(Boolean);
+                      const addr = addrParts.length > 0 ? addrParts.join(', ') : (address.street || '');
                       return (
                         <div className="bg-white/[0.02] rounded-xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div className="flex items-start gap-2">
@@ -1295,7 +1353,7 @@ const updateStatus = async (orderId, status) => {
                           </div>
                           <div className="flex items-start gap-2">
                             <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider w-14 shrink-0 mt-0.5">Phone</span>
-                            <span className="text-sm font-semibold text-white">{address.mobile || order.user_phone || '—'}</span>
+                            <span className="text-sm font-semibold text-white">{phone}</span>
                           </div>
                           <div className="flex items-start gap-2">
                             <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider w-14 shrink-0 mt-0.5">Email</span>
@@ -1304,7 +1362,12 @@ const updateStatus = async (orderId, status) => {
                           {addr && (
                             <div className="flex items-start gap-2 sm:col-span-2">
                               <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider w-14 shrink-0 mt-0.5">Address</span>
-                              <span className="text-sm font-semibold text-white">{addr}</span>
+                              <div className="text-sm font-semibold text-white space-y-0.5">
+                                <p>{address.flat_house ? address.flat_house : (address.line1 || addr)}</p>
+                                {(address.area_street || address.line2) && <p className="text-xs text-white/80">{address.area_street || address.line2}</p>}
+                                {address.landmark && <p className="text-xs text-[#D4AF37]">Landmark: {address.landmark}</p>}
+                                <p className="text-xs text-[#AEB6C2]">{[address.city, address.state, address.pincode || address.zip, address.country || 'India'].filter(Boolean).join(', ')}</p>
+                              </div>
                             </div>
                           )}
                           <div className="flex items-start gap-2">

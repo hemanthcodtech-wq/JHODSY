@@ -17,14 +17,27 @@ export const CheckoutAddressPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
 
   const [newAddr, setNewAddr] = useState({
+    country: 'India',
     fullName: '',
     phoneNumber: '',
+    flatHouse: '',
+    areaStreet: '',
+    landmark: '',
     pincode: '',
     city: '',
-    address: '',
     state: '',
-    landmark: ''
+    isDefault: true
   });
+
+  const INDIAN_STATES = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
+    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram',
+    'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu',
+    'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+    'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+    'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+  ];
 
   useEffect(() => {
     if (!token) {
@@ -56,7 +69,10 @@ export const CheckoutAddressPage: React.FC = () => {
             city: def.city,
             state: def.state,
             pincode: def.zip,
-            landmark: ''
+            country: def.country || 'India',
+            flatHouse: def.flat_house || '',
+            areaStreet: def.area_street || '',
+            landmark: def.landmark || ''
           });
         }
       }
@@ -69,9 +85,13 @@ export const CheckoutAddressPage: React.FC = () => {
 
   const handleAddNew = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAddr.fullName || !newAddr.phoneNumber || !newAddr.address || !newAddr.pincode) {
-      alert('Please fill in all required fields'); return;
+    if (!newAddr.fullName || !newAddr.phoneNumber || !newAddr.flatHouse || !newAddr.areaStreet || !newAddr.pincode || !newAddr.city || !newAddr.state) {
+      alert('Please fill in all required address fields'); return;
     }
+
+    const combinedStreet = [newAddr.flatHouse, newAddr.areaStreet, newAddr.landmark ? `Near ${newAddr.landmark}` : '']
+      .filter(Boolean)
+      .join(', ');
     
     setSaving(true);
     try {
@@ -82,13 +102,17 @@ export const CheckoutAddressPage: React.FC = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          country: newAddr.country,
           name: newAddr.fullName,
           phone: newAddr.phoneNumber,
-          street: newAddr.address,
+          flat_house: newAddr.flatHouse,
+          area_street: newAddr.areaStreet,
+          landmark: newAddr.landmark,
+          street: combinedStreet,
           city: newAddr.city,
           state: newAddr.state,
           zip: newAddr.pincode,
-          isDefault: true
+          isDefault: newAddr.isDefault
         })
       });
       const data = await res.json();
@@ -103,7 +127,10 @@ export const CheckoutAddressPage: React.FC = () => {
           city: data.address.city,
           state: data.address.state,
           pincode: data.address.zip,
-          landmark: ''
+          country: data.address.country || newAddr.country,
+          flatHouse: data.address.flat_house || newAddr.flatHouse,
+          areaStreet: data.address.area_street || newAddr.areaStreet,
+          landmark: data.address.landmark || newAddr.landmark
         });
         navigate('/checkout/payment');
       } else {
@@ -147,7 +174,19 @@ export const CheckoutAddressPage: React.FC = () => {
             <div className="space-y-4">
               {addresses.map(addr => (
                 <div key={addr.id} 
-                  onClick={() => setOrderAddress({ id: addr.id, fullName: addr.name, phoneNumber: addr.phone, address: addr.street, city: addr.city, state: addr.state, pincode: addr.zip })}
+                  onClick={() => setOrderAddress({
+                    id: addr.id,
+                    fullName: addr.name,
+                    phoneNumber: addr.phone,
+                    address: addr.street,
+                    city: addr.city,
+                    state: addr.state,
+                    pincode: addr.zip,
+                    country: addr.country || 'India',
+                    flatHouse: addr.flat_house || '',
+                    areaStreet: addr.area_street || '',
+                    landmark: addr.landmark || ''
+                  })}
                   className={`cursor-pointer border rounded-2xl p-4 transition-all ${orderAddress.id === addr.id ? 'border-white bg-white/5' : 'border-white/10 bg-[#071426] hover:border-white/30'}`}
                 >
                   <div className="flex justify-between">
@@ -169,61 +208,168 @@ export const CheckoutAddressPage: React.FC = () => {
 
           {showNewForm && (
             <form onSubmit={handleAddNew} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#AEB6C2]">Full Name *</label>
-                  <div className="relative">
-                    <User className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                    <input type="text" required placeholder="e.g. Arun Kumar" value={newAddr.fullName} onChange={(e) => setNewAddr({ ...newAddr, fullName: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#AEB6C2]">Phone Number *</label>
-                  <div className="relative">
-                    <Phone className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                    <input type="tel" required placeholder="e.g. +91 98765 43210" value={newAddr.phoneNumber} onChange={(e) => setNewAddr({ ...newAddr, phoneNumber: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
-                  </div>
+              {/* Country */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">Country / Region</label>
+                <div className="relative">
+                  <select
+                    value={newAddr.country}
+                    onChange={(e) => setNewAddr({ ...newAddr, country: e.target.value })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/40 appearance-none cursor-pointer"
+                  >
+                    <option value="India" className="bg-[#0B192D] text-white">India</option>
+                  </select>
                 </div>
               </div>
+
+              {/* Full Name */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">Full name (First and Last name) *</label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Arun Kumar"
+                    value={newAddr.fullName}
+                    onChange={(e) => setNewAddr({ ...newAddr, fullName: e.target.value })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Number */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">Mobile number *</label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                  <input
+                    type="tel"
+                    required
+                    maxLength={10}
+                    placeholder="10-digit mobile number without prefixes"
+                    value={newAddr.phoneNumber}
+                    onChange={(e) => setNewAddr({ ...newAddr, phoneNumber: e.target.value.replace(/\D/g, '') })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                  />
+                </div>
+                <p className="text-[11px] text-[#8994A3]">May be used to assist delivery</p>
+              </div>
+
+              {/* Flat, House no. */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">Flat, House no., Building, Company, Apartment *</label>
+                <div className="relative">
+                  <Home className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Flat 402, Royal Heights"
+                    value={newAddr.flatHouse}
+                    onChange={(e) => setNewAddr({ ...newAddr, flatHouse: e.target.value })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                  />
+                </div>
+              </div>
+
+              {/* Area, Street, Sector, Village */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">Area, Street, Sector, Village *</label>
+                <div className="relative">
+                  <Building2 className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Main Road, Gandhi Nagar"
+                    value={newAddr.areaStreet}
+                    onChange={(e) => setNewAddr({ ...newAddr, areaStreet: e.target.value })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                  />
+                </div>
+              </div>
+
+              {/* Landmark */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">Landmark</label>
+                <div className="relative">
+                  <Compass className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    placeholder="E.g. near apollo hospital"
+                    value={newAddr.landmark}
+                    onChange={(e) => setNewAddr({ ...newAddr, landmark: e.target.value })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                  />
+                </div>
+              </div>
+
+              {/* Pincode & Town/City */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-[#AEB6C2]">Pincode *</label>
                   <div className="relative">
                     <MapPin className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                    <input type="text" required maxLength={6} placeholder="e.g. 530017" value={newAddr.pincode} onChange={(e) => setNewAddr({ ...newAddr, pincode: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#AEB6C2]">City *</label>
-                  <div className="relative">
-                    <Building2 className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                    <input type="text" required placeholder="e.g. Vishakapatnam" value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-[#AEB6C2]">Street Address & Flat / House No. *</label>
-                <div className="relative">
-                  <Home className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
-                  <input type="text" required placeholder="e.g. Anakapalli, Vishakapatnam" value={newAddr.address} onChange={(e) => setNewAddr({ ...newAddr, address: e.target.value })} className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40" />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-[#AEB6C2]">State *</label>
-                  <div className="relative">
-                    <Compass className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Andhra Pradesh"
-                      value={newAddr.state}
-                      onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
+                      maxLength={6}
+                      placeholder="6-digit Pincode"
+                      value={newAddr.pincode}
+                      onChange={(e) => setNewAddr({ ...newAddr, pincode: e.target.value.replace(/\D/g, '') })}
+                      className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#AEB6C2]">Town/City *</label>
+                  <div className="relative">
+                    <Building2 className="w-4 h-4 text-[#8994A3] absolute left-3.5 top-3.5" />
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Vishakapatnam"
+                      value={newAddr.city}
+                      onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })}
                       className="w-full bg-[#071426] border border-white/15 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-[#8994A3] focus:outline-none focus:border-white/40"
                     />
                   </div>
                 </div>
               </div>
+
+              {/* State dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#AEB6C2]">State *</label>
+                <div className="relative">
+                  <select
+                    required
+                    value={newAddr.state}
+                    onChange={(e) => setNewAddr({ ...newAddr, state: e.target.value })}
+                    className="w-full bg-[#071426] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white/40 appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled className="bg-[#0B192D] text-[#8994A3]">Select State</option>
+                    {INDIAN_STATES.map((st) => (
+                      <option key={st} value={st} className="bg-[#0B192D] text-white">
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Default address checkbox */}
+              <div className="pt-2 flex items-center space-x-2.5">
+                <input
+                  type="checkbox"
+                  id="default_addr_check"
+                  checked={newAddr.isDefault}
+                  onChange={(e) => setNewAddr({ ...newAddr, isDefault: e.target.checked })}
+                  className="w-4 h-4 rounded bg-[#071426] border-white/20 text-brand-green focus:ring-0 cursor-pointer"
+                />
+                <label htmlFor="default_addr_check" className="text-xs text-[#AEB6C2] cursor-pointer">
+                  Make this my default address
+                </label>
+              </div>
+
               <div className="pt-4 flex items-center justify-between">
                 {addresses.length > 0 ? (
                   <button type="button" onClick={() => setShowNewForm(false)} className="text-xs text-[#AEB6C2] hover:text-white">Cancel</button>

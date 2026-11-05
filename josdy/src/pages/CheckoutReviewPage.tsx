@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/useAuthStore';
 const BACKEND_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001/api';
 
 export const CheckoutReviewPage: React.FC = () => {
-  const { cartItems, subtotal, discount, total, orderAddress, clearCart, paymentMethod } = useCart();
+  const { cartItems, subtotal, discount, gstAmount, total, orderAddress, clearCart, paymentMethod } = useCart();
   const { token } = useAuthStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -55,6 +55,8 @@ export const CheckoutReviewPage: React.FC = () => {
           body: JSON.stringify({
             addressId: orderAddress.id,
             total: total,
+            subtotal: subtotal - discount,
+            taxAmount: gstAmount,
             items: items,
             paymentMethod: 'cod'
           })
@@ -226,6 +228,12 @@ export const CheckoutReviewPage: React.FC = () => {
           <div className="flex justify-between text-[#AEB6C2]"><span>Items ({cartItems.reduce((acc, item) => acc + item.quantity, 0)})</span><span className="text-white font-medium">₹{subtotal}</span></div>
           {discount > 0 && <div className="flex justify-between text-emerald-400"><span>Savings</span><span>- ₹{discount}</span></div>}
           <div className="flex justify-between text-[#AEB6C2]"><span>Shipping</span><span className="text-white font-medium">FREE</span></div>
+          {paymentMethod === 'cod' && (
+            <div className="flex justify-between text-amber-300">
+              <span>COD GST (9%)</span>
+              <span>+ ₹{gstAmount}</span>
+            </div>
+          )}
           <div className="pt-3 border-t border-white/10 flex justify-between items-baseline font-bold text-white"><span className="text-sm">Payable Amount</span><span className="text-xl font-extrabold">₹{total}</span></div>
           <div className="pt-4">
             <button onClick={handlePlaceOrder} disabled={loading} className="w-full px-8 py-3.5 rounded-full bg-white text-[#071426] text-sm font-bold tracking-wide hover:bg-[#F5F5F5] active:scale-95 transition shadow-lg flex items-center justify-center space-x-2">
