@@ -241,12 +241,12 @@ function EditOrderModal({ order, onClose, onSaved }) {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ items, address: { ...address, mobile: customerPhone }, customer_phone: customerPhone, note }),
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await res.json().catch(() => ({ error: `Server error (${res.status})` }));
+      if (res.ok && data.success) {
         setResult(data);
         onSaved({ ...order, items: JSON.stringify(items), address: JSON.stringify({ ...address, mobile: customerPhone }), total: data.new_total, balance_due: data.balance_due, payment_link_url: data.payment_link_url });
       } else {
-        setResult({ error: data.error });
+        setResult({ error: data.error || `Server responded with ${res.status}` });
       }
     } catch (err) {
       setResult({ error: err.message });
@@ -811,8 +811,8 @@ const updateStatus = async (orderId, status) => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ refund_breakdown: breakdown, cancelled_items: cancelledItems, cancel_type: cancelType })
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await res.json().catch(() => ({ error: `Server error (${res.status})` }));
+      if (res.ok && data.success) {
         setOrders(prev => prev.map(o => {
           if (o.id !== order.id) return o;
           if (data.partial && data.remaining_items > 0) {
@@ -823,7 +823,7 @@ const updateStatus = async (orderId, status) => {
         }));
         setRefundResult({ success: true, refundId: data.refund_id, amount: data.amount, partial: data.partial, remainingItems: data.remaining_items });
       } else {
-        setRefundResult({ success: false, error: data.error });
+        setRefundResult({ success: false, error: data.error || `Server responded with ${res.status}` });
       }
     } catch (err) {
       setRefundResult({ success: false, error: err.message });
@@ -1129,7 +1129,7 @@ const updateStatus = async (orderId, status) => {
       <div class="sm">
         ${escapeHtml(address.flat_house || address.line1 || '')}${address.area_street || address.line2 ? ', ' + escapeHtml(address.area_street || address.line2) : ''}
         ${address.landmark ? '<br>Near ' + escapeHtml(address.landmark) : ''}
-        ${escapeHtml(address.city || '')}, ${escapeHtml(address.state || '')}
+        ${[address.city, address.state].filter(Boolean).map(escapeHtml).join(' , ')}${(address.pincode || address.zip) ? ' - ' + escapeHtml(address.pincode || address.zip) : ''}
       </div>
       ${(address.mobile || address.phone || order.user_phone) ? '<div class="sm" style="font-weight:700;margin-top:1mm;color:#111;">Ph: ' + escapeHtml(address.mobile || address.phone || order.user_phone) + '</div>' : ''}
     </div>

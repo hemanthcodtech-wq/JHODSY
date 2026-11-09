@@ -501,6 +501,180 @@ router.put('/orders/:id/status', async (req, res) => {
   }
 });
 
+// Edit Order
+router.put('/orders/:id/edit', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { items, address, customer_phone, note } = req.body;
+
+    const existingOrders = await sql`SELECT * FROM orders WHERE id = ${id}`;
+    if (existingOrders.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const currentOrder = existingOrders[0];
+
+    // Compute updated item subtotal and totals
+    let itemsTotal = 0;
+    if (Array.isArray(items)) {
+      for (const it of items) {
+        const itemPrice = Number(it.variant?.price || it.product?.price || 0);
+        const itemQty = Math.max(1, Number(it.qty) || 1);
+        itemsTotal += itemPrice * itemQty;
+      }
+    }
+
+    const shipping = parseFloat(currentOrder.shipping_fee) || 0;
+    const discount = parseFloat(currentOrder.discount_amount) || 0;
+    const isCod = (currentOrder.payment_method || '').toLowerCase() === 'cod';
+    const calculatedTax = isCod ? Math.round(itemsTotal * 0.09) : 0;
+    const newTotal = Math.max(0, itemsTotal + shipping + calculatedTax - discount);
+
+    const oldTotal = parseFloat(currentOrder.total) || 0;
+    const diff = Number((newTotal - oldTotal).toFixed(2));
+    const balanceDue = diff > 0 ? diff : 0;
+
+    // Update orders table
+    const updated = await sql`
+      UPDATE orders
+      SET total = ${newTotal},
+          subtotal = ${itemsTotal},
+          tax_amount = ${calculatedTax},
+          balance_due = ${balanceDue},
+          admin_note = ${note || currentOrder.admin_note || null}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    // Update associated address if provided and address_id exists
+    if (currentOrder.address_id && address) {
+      await sql`
+        UPDATE addresses
+        SET name = COALESCE(${address.name || null}, name),
+            phone = COALESCE(${customer_phone || address.mobile || address.phone || null}, phone),
+            flat_house = COALESCE(${address.flat_house || address.line1 || null}, flat_house),
+            area_street = COALESCE(${address.area_street || address.line2 || null}, area_street),
+            street = COALESCE(${address.street || address.line1 || null}, street),
+            landmark = COALESCE(${address.landmark || null}, landmark),
+            city = COALESCE(${address.city || null}, city),
+            state = COALESCE(${address.state || null}, state),
+            zip = COALESCE(${address.pincode || address.zip || null}, zip)
+        WHERE id = ${currentOrder.address_id}
+      `;
+    }
+
+    // Refresh order items
+    if (Array.isArray(items) && items.length > 0) {
+      await sql`DELETE FROM order_items WHERE order_id = ${id}`;
+      for (const it of items) {
+        const prodId = it.product?.id || it.product_id || null;
+        const prodName = it.product?.name || it.product_name || 'Product';
+        const price = Number(it.variant?.price || it.product?.price || 0);
+        const size = it.variant?.size || it.size || 'Standard';
+        const qty = Math.max(1, Number(it.qty) || 1);
+
+        await sql`
+          INSERT INTO order_items (order_id, product_id, product_name, quantity, price, size)
+          VALUES (${id}, ${prodId}, ${prodName}, ${qty}, ${price}, ${size})
+        `;
+      }
+    }
+
+    res.json({
+      success: true,
+      new_total: newTotal,
+      balance_due: balanceDue,
+      payment_link_url: currentOrder.payment_link_url || null,
+      order: updated[0]
+    });
+  } catch (error) {
+    console.error("EDIT ORDER ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Cancel & Refund Order
+router.post('/orders/:id/refund', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { refund_breakdown, cancelled_items, cancel_type } = req.body;
+
+    const existingOrders = await sql`SELECT * FROM orders WHERE id = ${id}`;
+    if (existingOrders.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    const currentOrder = existingOrders[0];
+
+    const refundId = `REF_${Date.now()}`;
+    const refundAmount = refund_breakdown?.total || currentOrder.total || 0;
+
+    const updated = await sql`
+      UPDATE orders
+      SET status = 'cancelled',
+          refund_id = ${refundId}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    res.json({
+      success: true,
+      refund_id: refundId,
+      amount: refundAmount,
+      partial: false,
+      remaining_items: 0,
+      order: updated[0]
+    });
+  } catch (error) {
+    console.error("REFUND ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Resend Payment Link
+router.post('/orders/:id/resend-payment-link', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await sql`SELECT * FROM orders WHERE id = ${id}`;
+    if (existing.length === 0) return res.status(404).json({ error: 'Order not found' });
+
+    const order = existing[0];
+    const link = order.payment_link_url || `https://jhodsy.com/checkout/pay-balance?order_id=${id}&amount=${order.balance_due || 0}`;
+
+    await sql`
+      UPDATE orders
+      SET payment_link_url = ${link}
+      WHERE id = ${id}
+    `;
+
+    res.json({ success: true, payment_link_url: link });
+  } catch (error) {
+    console.error("RESEND PAYMENT LINK ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mark Balance as Paid
+router.post('/orders/:id/mark-balance-paid', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { method } = req.body;
+
+    const updated = await sql`
+      UPDATE orders
+      SET balance_due = 0,
+          payment_link_url = null,
+          admin_note = CONCAT(COALESCE(admin_note, ''), ' | Balance marked paid via ', ${method || 'admin'}::text)
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    if (updated.length === 0) return res.status(404).json({ error: 'Order not found' });
+    res.json({ success: true, order: updated[0] });
+  } catch (error) {
+    console.error("MARK BALANCE PAID ERROR:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Delivery Partners
 router.get('/delivery-partners', (req, res) => {
   res.json({ partners: [] });
